@@ -71,9 +71,6 @@ If LiquidJS is benefiting your business/company, please sponsor us to contribute
 
 <img src="https://opencollective.com/liquidjs/sponsors.svg?avatarHeight=72">
 
-### Additional Features
-Added the case insensitive property to the context object and enables case-insensitive match for the object..
-
 ## Contributors ✨
 
 Want to contribute? see [Contribution Guidelines][contribution]. Thanks goes to these wonderful people:
