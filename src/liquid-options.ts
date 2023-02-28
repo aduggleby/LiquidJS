@@ -1,13 +1,13 @@
-import { assert, isArray, isString, isFunction } from './util'
-import { LRU, LiquidCache } from './cache'
-import { FS, LookupType } from './fs'
-import * as fs from './fs/node'
-import { defaultOperators, Operators } from './render'
-import { json } from './filters/misc'
-import { escape } from './filters/html'
+import { assert, isArray, isString, isFunction } from "./util";
+import { LRU, LiquidCache } from "./cache";
+import { FS, LookupType } from "./fs";
+import * as fs from "./fs/node";
+import { defaultOperators, Operators } from "./render";
+import { json } from "./filters/misc";
+import { escape } from "./filters/html";
 
-type OutputEscape = (value: any) => string
-type OutputEscapeOption = 'escape' | 'json' | OutputEscape
+type OutputEscape = (value: any) => string;
+type OutputEscapeOption = "escape" | "json" | OutputEscape;
 
 export interface LiquidOptions {
   /** A directory or an array of directories from where to resolve layout and include templates, and the filename passed to `.renderFile()`. If it's an array, the files are looked up in the order they occur in the array. Defaults to `["."]` */
@@ -91,6 +91,11 @@ export interface RenderOptions {
    * Same as `ownPropertyOnly` on LiquidOptions, but only for current render() call
    */
   ownPropertyOnly?: boolean;
+
+  /**
+   * Added for case insensitive for Context object
+   */
+  caseInsensitive?: boolean;
 }
 
 export interface RenderFileOptions extends RenderOptions {
@@ -134,29 +139,32 @@ export interface NormalizedFullOptions extends NormalizedOptions {
   globals: object;
   keepOutputType: boolean;
   operators: Operators;
+
+  //added for case insensitive
+  caseInsensitive: boolean;
 }
 
 export const defaultOptions: NormalizedFullOptions = {
-  root: ['.'],
-  layouts: ['.'],
-  partials: ['.'],
+  root: ["."],
+  layouts: ["."],
+  partials: ["."],
   relativeReference: true,
   jekyllInclude: false,
   cache: undefined,
-  extname: '',
+  extname: "",
   fs: fs,
   dynamicPartials: true,
   jsTruthy: false,
-  dateFormat: '%A, %B %-e, %Y at %-l:%M %P %z',
+  dateFormat: "%A, %B %-e, %Y at %-l:%M %P %z",
   trimTagRight: false,
   trimTagLeft: false,
   trimOutputRight: false,
   trimOutputLeft: false,
   greedy: true,
-  tagDelimiterLeft: '{%',
-  tagDelimiterRight: '%}',
-  outputDelimiterLeft: '{{',
-  outputDelimiterRight: '}}',
+  tagDelimiterLeft: "{%",
+  tagDelimiterRight: "%}",
+  outputDelimiterLeft: "{{",
+  outputDelimiterRight: "}}",
   preserveTimezones: false,
   strictFilters: false,
   strictVariables: false,
@@ -164,43 +172,59 @@ export const defaultOptions: NormalizedFullOptions = {
   lenientIf: false,
   globals: {},
   keepOutputType: false,
-  operators: defaultOperators
-}
+  operators: defaultOperators,
 
-export function normalize (options: LiquidOptions): NormalizedFullOptions {
-  if (options.hasOwnProperty('root')) {
-    if (!options.hasOwnProperty('partials')) options.partials = options.root
-    if (!options.hasOwnProperty('layouts')) options.layouts = options.root
+  //added for case insensitive
+  caseInsensitive: false,
+};
+
+export function normalize(options: LiquidOptions): NormalizedFullOptions {
+  if (options.hasOwnProperty("root")) {
+    if (!options.hasOwnProperty("partials")) options.partials = options.root;
+    if (!options.hasOwnProperty("layouts")) options.layouts = options.root;
   }
-  if (options.hasOwnProperty('cache')) {
-    let cache: LiquidCache | undefined
-    if (typeof options.cache === 'number') cache = options.cache > 0 ? new LRU(options.cache) : undefined
-    else if (typeof options.cache === 'object') cache = options.cache
-    else cache = options.cache ? new LRU(1024) : undefined
-    options.cache = cache
+  if (options.hasOwnProperty("cache")) {
+    let cache: LiquidCache | undefined;
+    if (typeof options.cache === "number")
+      cache = options.cache > 0 ? new LRU(options.cache) : undefined;
+    else if (typeof options.cache === "object") cache = options.cache;
+    else cache = options.cache ? new LRU(1024) : undefined;
+    options.cache = cache;
   }
-  options = { ...defaultOptions, ...(options.jekyllInclude ? { dynamicPartials: false } : {}), ...options }
+  options = {
+    ...defaultOptions,
+    ...(options.jekyllInclude ? { dynamicPartials: false } : {}),
+    ...options,
+  };
   if (!options.fs!.dirname && options.relativeReference) {
-    console.warn('[LiquidJS] `fs.dirname` is required for relativeReference, set relativeReference to `false` to suppress this warning, or provide implementation for `fs.dirname`')
-    options.relativeReference = false
+    console.warn(
+      "[LiquidJS] `fs.dirname` is required for relativeReference, set relativeReference to `false` to suppress this warning, or provide implementation for `fs.dirname`"
+    );
+    options.relativeReference = false;
   }
-  options.root = normalizeDirectoryList(options.root)
-  options.partials = normalizeDirectoryList(options.partials)
-  options.layouts = normalizeDirectoryList(options.layouts)
-  options.outputEscape = options.outputEscape && getOutputEscapeFunction(options.outputEscape)
-  return options as NormalizedFullOptions
+  options.root = normalizeDirectoryList(options.root);
+  options.partials = normalizeDirectoryList(options.partials);
+  options.layouts = normalizeDirectoryList(options.layouts);
+  options.outputEscape =
+    options.outputEscape && getOutputEscapeFunction(options.outputEscape);
+  return options as NormalizedFullOptions;
 }
 
-function getOutputEscapeFunction (nameOrFunction: OutputEscapeOption): OutputEscape {
-  if (nameOrFunction === 'escape') return escape
-  if (nameOrFunction === 'json') return json
-  assert(isFunction(nameOrFunction), '`outputEscape` need to be of type string or function')
-  return nameOrFunction
+function getOutputEscapeFunction(
+  nameOrFunction: OutputEscapeOption
+): OutputEscape {
+  if (nameOrFunction === "escape") return escape;
+  if (nameOrFunction === "json") return json;
+  assert(
+    isFunction(nameOrFunction),
+    "`outputEscape` need to be of type string or function"
+  );
+  return nameOrFunction;
 }
 
-export function normalizeDirectoryList (value: any): string[] {
-  let list: string[] = []
-  if (isArray(value)) list = value
-  if (isString(value)) list = [value]
-  return list
+export function normalizeDirectoryList(value: any): string[] {
+  let list: string[] = [];
+  if (isArray(value)) list = value;
+  if (isString(value)) list = [value];
+  return list;
 }

@@ -3,11 +3,12 @@
 
 <head>
   <title>liquidjs for the browser</title>
-  <script src="node_modules/liquidjs/dist/liquid.browser.min.js"></script>
+  <script src="../../dist/liquid.browser.min.js"></script>
 </head>
 
 <body>
-  <script>
+  <!-- Original Code
+     <script>
     var Liquid = window.liquidjs.Liquid
     var engine = new Liquid({
       extname: '.html',
@@ -23,6 +24,44 @@
         document.body.innerHTML = html
       });
   </script>
+ -->
+
+  <script type="text/template">
+    <h3>{{ name | capitalize | prepend: "Welcome to "}}</h3>
+  </script>
+  
+  <p>
+    Currently only if the tag name matches the js object property then it will match
+  </p>
+  <div id="result"></div>
+  <p>
+    After your change I would like the match to be case insensitive (if the options object contains a caseInsensitive flag)
+  </p>
+  <div id="result2"></div>
+  <hr/>
+  <b>After the project the two outputs result and result2 should be identical.</b>
+  <script>
+
+    const template = document.querySelector('[type="text/template"]')
+    const result = document.querySelector('#result')
+    const result2 = document.querySelector('#result2')
+    
+    var Liquid = window.liquidjs.Liquid
+    var engine = new Liquid({
+    extname: '.html',
+    cache: true
+    });
+
+    engine
+    .parseAndRender(template.innerHTML, {name: 'liquid'}, {ownPropertyOnly: true})
+    .then(html => result.innerHTML = html)
+
+    engine
+    .parseAndRender(template.innerHTML, {Name: 'liquid'}, {ownPropertyOnly: true, caseInsensitive:true })
+    .then(html => result2.innerHTML = html)
+
+  </script>
+
 </body>
 
 </html>

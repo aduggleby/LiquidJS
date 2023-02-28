@@ -15,7 +15,7 @@
   },
   "scripts": {
     "lint": "eslint \"**/*.mjs\" \"**/*.ts\" .",
-    "check": "npm run postversion && npm test && npm run lint && npm run perf:diff",
+    "check": "npm run build && npm test && npm run lint && npm run perf:diff",
     "test": "nyc mocha \"test/**/*.ts\"",
     "test:e2e": "mocha \"test/e2e/**/*.ts\"",
     "perf": "cd benchmark && npm ci && npm start",
@@ -161,8 +161,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run check"
-      // "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "pre-commit": "npm run check",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }
 }
